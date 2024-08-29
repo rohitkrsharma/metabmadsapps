@@ -7,6 +7,7 @@ import NetworkDetailView from './NetworkTokenFormView';
 
 const TableComponent = ({ view, onToggleView }) => {
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]); // Filtered data state
   const [selectedRow, setSelectedRow] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -26,8 +27,10 @@ const TableComponent = ({ view, onToggleView }) => {
       const result = await getCryptoNetworks();
       if (Array.isArray(result.data)) {
         setData(result.data);
+        setFilteredData(result.data);
       } else {
         setData([]);
+        setFilteredData([]);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -60,7 +63,7 @@ const TableComponent = ({ view, onToggleView }) => {
   };
 
   const totalPages = Math.ceil(data.length / entriesPerPage);
-
+  const currentData = filteredData.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
   const handlePrevious = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
@@ -73,8 +76,6 @@ const TableComponent = ({ view, onToggleView }) => {
     setCurrentPage(page);
   };
 
-  const visibleData = data.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
-
   const handleSave = (newData) => {
     setData((prevData) => [...prevData, newData]);
     setIsAdding(false);
@@ -85,7 +86,7 @@ const TableComponent = ({ view, onToggleView }) => {
     setEditFormData({
       ...row,
       status: row.status.toString(), // Convert status to string for the select input
-      cryptoNetworkImage: row.cryptoNetworkImage || '' // Initialize the image field to avoid undefined issues
+      cryptoNetworkImage: row.cryptoNetworkImage // Initialize the image field to avoid undefined issues
     });
     setEditImageFile(null);
   };
@@ -109,7 +110,7 @@ const TableComponent = ({ view, onToggleView }) => {
       formData.append('Id', editFormData.id);
       formData.append('cryptoNetworkName', editFormData.cryptoNetworkName);
       formData.append('cryptoNetworkDescription', editFormData.cryptoNetworkDescription);
-      formData.append('status', editFormData.status === 'true'); // Convert status back to boolean
+      formData.append('status', editFormData.status === 'true');
       if (editImageFile) {
         formData.append('imageFile', editImageFile);
       } else {
@@ -145,6 +146,19 @@ const TableComponent = ({ view, onToggleView }) => {
     }} />;
   }
 
+  const handleSearchTermChange = (term) => {
+    const lowercasedTerm = term.toLowerCase();
+    if (term) {
+      const filtered = data.filter((item) =>
+        item.cryptoNetworkName.toLowerCase().includes(lowercasedTerm)
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data); // Reset filteredData when search term is cleared
+    }
+    setCurrentPage(1); // Reset to the first page after filtering
+  };
+
   if (isAdding) {
     return <NetworkAdd onBack={handleBack} onSave={handleSave} />;
   }
@@ -153,10 +167,13 @@ const TableComponent = ({ view, onToggleView }) => {
     <>
       <div className='flex justify-between mb-4'>
         <div className="breadcrumb text-gray-700">
-          <span className='cursor-pointer'>Master Setting</span> &gt; <span className='cursor-pointer'>Network Token</span>
         </div>
         <div>
-          <SearchBar onToggleView={onToggleView} currentView={view} onAdd={() => setIsAdding(true)} />
+          <SearchBar
+            onToggleView={onToggleView}
+            currentView={view} onAdd={() => setIsAdding(true)}
+            onSearchTermChange={handleSearchTermChange}
+          />
         </div>
       </div>
       <div className="p-4 border border-customPurple rounded-md shadow-custom">
@@ -172,7 +189,7 @@ const TableComponent = ({ view, onToggleView }) => {
             </tr>
           </thead>
           <tbody className="bg-white">
-            {visibleData.map((item, index) => (
+            {currentData.map((item, index) => (
               <tr
                 key={item.id}
                 className={`border-b border-customPurple ${index % 2 === 0 ? 'bg-gray-200' : ''}`}
@@ -185,7 +202,7 @@ const TableComponent = ({ view, onToggleView }) => {
                     <input
                       type="text"
                       name="cryptoNetworkName"
-                      value={editFormData.cryptoNetworkName || ''}
+                      value={editFormData.cryptoNetworkName}
                       onChange={handleInputChange}
                       className="form-control w-full p-2 border border-gray-300 rounded"
                     />

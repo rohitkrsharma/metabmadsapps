@@ -4,7 +4,7 @@ import AddBM from './components/BM/AddBm';
 import AdsApproval from './components/BM/AdsApproval';
 import CustomerView from './components/CRM/Customer_view';
 import UserListView from './components/CRM/ListView';
-import ResellerView from './components/CRM/Reseller_view';
+import UserGrid from './components/CRM/USerGrid';
 import Dashboard from './components/Dashboard';
 import LandingPage from './components/Login/LandingPage';
 import AdminLogin from './components/Login/Reseller';
@@ -19,7 +19,6 @@ import Sidebar from './components/SideBar';
 import AddForm from './components/Wallet/AddWallet';
 import ListWallet from './components/Wallet/ListWallet';
 import WalletHistory from './components/Wallet/WalletHistory';
-import UserGrid from './components/CRM/USerGrid';
 
 const App = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -34,9 +33,9 @@ const App = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  const breadcrumbs = ['Master Setting', 'DepositCrypto'];
-  const listBreadcrumbs = ['Wallet', 'ListWallet'];
-  const adsapproval = ['BM/ADS Management', 'AdsApproval'];
+  // const breadcrumbs = ['Master Setting', 'DepositCrypto'];
+  // const listBreadcrumbs = ['Wallet', 'ListWallet'];
+  // const adsapproval = ['BM/ADS Management', 'AdsApproval'];
 
   const onToggleView = (newView) => {
     setView(newView);
@@ -68,7 +67,7 @@ const App = () => {
                       showAddBM ? (
                         <AddBM onBack={() => setShowAddBM(false)} showBackButton={true} />
                       ) : (
-                        <AdsApproval view={view} onToggleView={onToggleView} onAdd={() => setShowAddBM(true)} breadcrumbs={adsapproval} />
+                        <AdsApproval view={view} onToggleView={onToggleView} onAdd={() => setShowAddBM(true)} />
                       )
                     } />
                     <Route path="/bm/add" element={<AddBM />} />
@@ -76,17 +75,15 @@ const App = () => {
                       showAddForm ? (
                         <AddForm onBack={() => setShowAddForm(false)} />
                       ) : (
-                        <ListWallet view={view} onToggleView={onToggleView} breadcrumbs={listBreadcrumbs} onAdd={() => setShowAddForm(true)} />
+                        <ListWallet view={view} onToggleView={onToggleView} onAdd={() => setShowAddForm(true)} />
                       )
                     } />
                     {/* <Route path="/wallet/topup" element={<TopUpStatus view={view} onToggleView={onToggleView} breadcrumbs={topupBreadcrumbs} />} /> */}
-                    <Route path="/wallet/history" element={<WalletHistory view={view} onToggleView={onToggleView} breadcrumbs={listBreadcrumbs} />} />
+                    <Route path="/wallet/history" element={<WalletHistory view={view} onToggleView={onToggleView} />} />
                     <Route path="/shared/list" element={<ListShared />} />
                     <Route path="/master/network" element={showNetwork ? (<NetworkAdd onBack={() => setShowNetwork(false)} />) : (<NetworkTokenSetting onAdd={() => setShowNetwork(true)} view={view} onToggleView={onToggleView} />)} />
-                    <Route path="/master/deposit" element={showDeposite ? (<DepositeAdd onBack={() => { setShowDeposite(false) }} />) : (<DepositCrypto onAdd={() => setShowDeposite(true)} breadcrumbs={breadcrumbs} view={view} onToggleView={onToggleView} />)} />
+                    <Route path="/master/deposit" element={showDeposite ? (<DepositeAdd onBack={() => { setShowDeposite(false) }} />) : (<DepositCrypto onAdd={() => setShowDeposite(true)} view={view} onToggleView={onToggleView} />)} />
                     <Route path="/setting" element={<Setting />} />
-                    {/* <Route path="/customer-view/:userId" element={<CustomerView />} />
-                    <Route path="/reseller-view/:userId" element={<ResellerView />} /> */}
                     <Route path="/customer-view/:userId" element={<CustomerView />} />
                   </Routes>
                 </div>

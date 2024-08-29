@@ -6,6 +6,7 @@ import DepositeFormView from './DepositeFormView';
 
 const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
   const [selectedRow, setSelectedRow] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
   const [editRowId, setEditRowId] = useState(null);
   const [editAddress, setEditAddress] = useState('');
   const [cryptoNetworkId, setCryptoNetworkId] = useState(0);
@@ -18,6 +19,7 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
   const entriesPerPage = 10;
   const [data, setData] = useState([]);
   const [formData, setFormData] = useState(null);
+
   const fetchData = async () => {
     try {
       const token = await fetchToken();
@@ -36,6 +38,7 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
       const result = await response.json();
       if (Array.isArray(result.data)) {
         setData(result.data);
+        setFilteredData(result.data); // Set both data and filteredData
       } else {
         console.error('Expected result.data to be an array but got:', result.data);
         setData([]);
@@ -72,7 +75,6 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
         setEditAddress(result.data.address);
         setCryptoNetworkId(result.data.cryptoNetworkId);
         setCryptoNetworkName(result.data.cryptoNetworkName);
-        console.log('crypto', result.data.cryptoNetworkName);
         setCryptoNetworkImage(result.data.cryptoNetworkImage);
         setStatus(result.data.status || true);
         setUpdatedBy(result.data.updatedBy);
@@ -96,7 +98,8 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
     setFormData(null);
   };
 
-  const totalPages = Math.ceil(data.length / entriesPerPage);
+  const totalPages = Math.ceil(filteredData.length / entriesPerPage);
+  const currentData = filteredData.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
   const handlePrevious = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -113,12 +116,12 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
   const handleEditClick = (item, e) => {
     e.stopPropagation();
     setEditRowId(item.id);
-    setEditAddress(item.address || '');
-    setCryptoNetworkId(item.cryptoNetworkId || 0);
-    setCryptoNetworkName(item.cryptoNetworkName || '');
-    setCryptoNetworkImage(item.cryptoNetworkImage || '');
+    setEditAddress(item.address);
+    setCryptoNetworkId(item.cryptoNetworkId);
+    setCryptoNetworkName(item.cryptoNetworkName);
+    setCryptoNetworkImage(item.cryptoNetworkImage);
     setStatus(item.status || true);
-    setUpdatedBy(item.updatedBy || '');
+    setUpdatedBy(item.updatedBy);
     setUpdatedDate(item.updatedDate || new Date().toISOString());
   };
 
@@ -143,8 +146,6 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
       formData.append('updatedBy', updatedBy.trim() || '');
       formData.append('updatedDate', updatedDate || new Date().toISOString());
 
-      console.log('FormData:', formData);
-
       const token = await fetchToken();
       const response = await fetch(`${API_BASE_URL}/CryptoAddresses/${editRowId}`, {
         method: 'PUT',
@@ -156,22 +157,23 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error:', errorData);
         throw new Error(`Update failed: ${errorData.title || 'Unknown error'}`);
       }
 
-      // Update local state
       const updatedData = data.map((item) =>
-        item.id === editRowId ? {
-          ...item,
-          address: editAddress.trim(),
-          cryptoNetworkId: networkId,
-          status,
-          updatedBy: updatedBy.trim() || '',
-          updatedDate: updatedDate || new Date().toISOString(),
-        } : item
+        item.id === editRowId
+          ? {
+            ...item,
+            address: editAddress.trim(),
+            cryptoNetworkId: networkId,
+            status,
+            updatedBy: updatedBy.trim() || '',
+            updatedDate: updatedDate || new Date().toISOString(),
+          }
+          : item
       );
       setData(updatedData);
+      setFilteredData(updatedData); // Also update filtered data
 
       setEditRowId(null);
       setEditAddress('');
@@ -184,7 +186,6 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
     }
   };
 
-
   const handleCancelClick = () => {
     setEditRowId(null);
     setEditAddress('');
@@ -194,10 +195,19 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
     setUpdatedDate(new Date().toISOString());
   };
 
-  const visibleData = data.slice(
-    (currentPage - 1) * entriesPerPage,
-    currentPage * entriesPerPage
-  );
+  const handleSearchTermChange = (term) => {
+    const lowercasedTerm = term.toLowerCase();
+    if (term) {
+      const filtered = data.filter((item) =>
+        item.address.toLowerCase().includes(lowercasedTerm) ||
+        item.cryptoNetworkName.toLowerCase().includes(lowercasedTerm)
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data); // Reset filteredData when search term is cleared
+    }
+    setCurrentPage(1); // Reset to the first page after filtering
+  };
 
   if (selectedRow) {
     return (
@@ -214,15 +224,14 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
     <>
       <div className="flex justify-between mb-4">
         <div className="text-gray-700 flex gap-1">
-          {breadcrumbs.map((breadcrumb, index) => (
-            <span key={index} className="cursor-pointer">
-              {breadcrumb}
-              {index < breadcrumbs.length - 1 && ' > '}
-            </span>
-          ))}
+
         </div>
         <div>
-          <SearchBar onToggleView={onToggleView} currentView={view} onAdd={onAdd} />
+          <SearchBar
+            onToggleView={onToggleView}
+            currentView={view} onAdd={onAdd}
+            onSearchTermChange={handleSearchTermChange}
+          />
         </div>
       </div>
       <div className="p-4 border border-customPurple rounded-md shadow-custom">
@@ -236,7 +245,7 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
             </tr>
           </thead>
           <tbody className="bg-white">
-            {visibleData.map((item, index) => (
+            {currentData.map((item, index) => (
               <tr
                 key={item.id}
                 onClick={() => handleRowClick(item)}

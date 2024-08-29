@@ -1,17 +1,19 @@
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { FaArrowLeft, FaSave } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa';
 import { Tab, TabList, TabPanel, Tabs } from 'react-tabs';
+import { toast, ToastContainer } from 'react-toastify';
+import { API_BASE_URL, fetchToken } from '../utils/auth';
 import AddCustomerEveryBM from './AddCustomerEveryBM';
 import OrderHistoryTable from './OrderHistoryTable';
-import axios from 'axios';
-import { API_BASE_URL, fetchToken } from '../utils/auth';
 
 const AddCustomer = ({ onBack }) => {
   const [selectedImage, setSelectedImage] = useState(null);
-  const [isCustomer, setIsCustomer] = useState(true);
+  const [isCustomer, setIsCustomer] = useState(false);
   const [orderHistoryData, setOrderHistoryData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
+    userTypeId: 1, // Default to Reseller
     userId: '',
     accountName: '',
     password: '',
@@ -50,12 +52,17 @@ const AddCustomer = ({ onBack }) => {
   };
 
   const handleToggle = () => {
-    setIsCustomer(!isCustomer);
-    setFormData((prevData) => ({
-      ...prevData,
-      userTypeId: !isCustomer ? 1 : 2,
-    }));
+    setIsCustomer((prevIsCustomer) => {
+      const newIsCustomer = !prevIsCustomer;
+      console.log('Toggling: ', newIsCustomer ? 'Customer' : 'Reseller'); // Debugging log
+      setFormData((prevData) => ({
+        ...prevData,
+        userTypeId: newIsCustomer ? 2 : 1, // Set userTypeId based on the new state
+      }));
+      return newIsCustomer;
+    });
   };
+
 
   const columns = ['S.N', 'Order No', 'BM ID', 'Order Date', 'Status'];
 
@@ -95,10 +102,37 @@ const AddCustomer = ({ onBack }) => {
         }
       );
       console.log('Data saved successfully', response.data);
+
+      // If successful, clear the error state
+      setErrors({});
+      toast.success('Data saved successfully!', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+
     } catch (error) {
-      console.error('Error saving data:', error);
+      // Check for validation errors or generic errors
       if (error.response && error.response.data && error.response.data.errors) {
-        setErrors(error.response.data.errors);
+        const errorMessages = error.response.data.errors;
+
+        // Get the first error field and its corresponding message
+        const firstErrorField = Object.keys(errorMessages)[0];
+        const firstErrorMessage = errorMessages[firstErrorField][0];
+
+        // Set the first error for the field
+        setErrors({ [firstErrorField]: firstErrorMessage });
+
+        // Display the first error message in the toast
+        toast.error(firstErrorMessage, {
+          position: 'top-right',
+          autoClose: 3000,
+        });
+      } else {
+        // Generic error handling
+        toast.error('An unexpected error occurred while saving data.', {
+          position: 'top-right',
+          autoClose: 3000,
+        });
       }
     }
   };
@@ -119,21 +153,21 @@ const AddCustomer = ({ onBack }) => {
             <FaArrowLeft /> Back
           </button>
           <button className='flex items-center gap-1 px-4 py-2 text-white bg-green-500 hover:bg-green-600 rounded' onClick={handleSave}>
-            <FaSave /> Save
+            Submit
           </button>
         </div>
         <div className='flex gap-2'>
           <div className="flex items-center space-x-4">
             <label className="flex items-center cursor-pointer">
-              <div className={`font-medium ${isCustomer ? 'text-customPurple' : 'text-gray-400'}`}>
+              <div className={`font-medium ${isCustomer ? 'text-customPurple' : 'text-customPurple'}`}>
                 Reseller
               </div>
               <div className="relative mx-2">
                 <input type="checkbox" className="sr-only" checked={isCustomer} onChange={handleToggle} />
-                <div className={`block w-14 h-8 rounded-full transition-colors ${isCustomer ? 'bg-customPurple' : 'bg-green-500'}`}></div>
-                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isCustomer ? '' : 'transform translate-x-6'}`}></div>
+                <div className={`block w-14 h-8 rounded-full transition-colors ${isCustomer ? 'bg-pink-500' : 'bg-customPurple'}`}></div>
+                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isCustomer ? 'transform translate-x-6' : ''}`}></div>
               </div>
-              <div className={`font-medium ${isCustomer ? 'text-gray-400' : 'text-green-500'}`}>
+              <div className={`font-medium ${isCustomer ? 'text-pink-500' : 'text-gray-400'}`}>
                 Customer
               </div>
             </label>
@@ -143,18 +177,6 @@ const AddCustomer = ({ onBack }) => {
       <div className='p-4 border border-customPurple rounded-md shadow-custom'>
         <div className='flex justify-between gap-20'>
           <div className='flex-1 space-y-4'>
-            {/* <div className='flex gap-2 items-center'>
-              <label className='w-48'>User ID :</label>
-              <input
-                className='border w-full border-gray-300 rounded-md p-2'
-                type='text'
-                placeholder='Enter User Id'
-                name='userId'
-                value={formData.userId}
-                onChange={handleInputChange}
-              />
-              {errors.UserId && <span className='text-red-600'>{errors.UserId}</span>}
-            </div> */}
             <div className='flex gap-2 items-center'>
               <label className='w-48'>Account Name :</label>
               <input
@@ -167,18 +189,6 @@ const AddCustomer = ({ onBack }) => {
               />
               {errors.accountName && <span className='text-red-600'>{errors.accountName}</span>}
             </div>
-            {/* <div className='flex gap-2 items-center'>
-              <label className='w-48'>Password :</label>
-              <input
-                className='border w-full border-gray-300 rounded-md p-2'
-                type='password'
-                placeholder='Enter Password'
-                name='password'
-                value={formData.password}
-                onChange={handleInputChange}
-              />
-              {errors.Password && <span className='text-red-600'>{errors.Password}</span>}
-            </div> */}
             <div className='flex gap-2 items-center'>
               <label className='w-48'>Contact Number :</label>
               <input
@@ -265,6 +275,7 @@ const AddCustomer = ({ onBack }) => {
           </TabPanel>
         </Tabs>
       </div>
+      <ToastContainer />
     </div>
   );
 };

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { FaFilter, FaLayerGroup, FaStar, FaPlus, FaTh, FaList } from 'react-icons/fa';
 import { MdArrowDropDown } from 'react-icons/md';
 
-const SearchBar = ({ onSearch, onAdd, onToggleView, currentView }) => {
+const SearchBar = ({ onSearchTermChange, onAdd, onToggleView, currentView }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [selectedFilters, setSelectedFilters] = useState([]);
   const [selectedGroupBy, setSelectedGroupBy] = useState([]);
   const [selectedFavorites, setSelectedFavorites] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleDropdown = (dropdown) => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
@@ -22,18 +23,22 @@ const SearchBar = ({ onSearch, onAdd, onToggleView, currentView }) => {
       setSelectedFavorites(checked ? [...selectedFavorites, name] : selectedFavorites.filter((item) => item !== name));
     }
   };
-
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    onSearchTermChange(event.target.value);  // Pass the search term back to UserGrid
+  };
   return (
     <div className="bg-white shadow-md rounded-md p-4">
       <div className="flex items-center mb-1">
         <input
           type="text"
           placeholder="Search term..."
+          onChange={handleSearchChange}  // Trigger search on every key press
           className="flex-grow md:w-full px-2 py-1 text-xs rounded-md focus:outline-none border border-r-0 border-gray-300"
         />
         <button
           className="bg-customPurple text-xs hover:bg-hcolor text-white px-2 py-1  rounded-r-md flex items-center space-x-1 border-l-0"
-          onClick={onSearch}
+          onClick={() => onSearchTermChange(searchTerm)}
         >
           Search
         </button>

@@ -4,8 +4,9 @@ import SearchBar from '../SearchBar';
 import ListWalletView from './ListWalletView';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
 
-const ListWallet = ({ breadcrumbs, onAdd, onToggleView, view }) => {
+const ListWallet = ({ onAdd, onToggleView, view }) => {
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]); // Filtered data state
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRow, setSelectedRow] = useState(null);
   const [editRowId, setEditRowId] = useState(null);
@@ -15,7 +16,8 @@ const ListWallet = ({ breadcrumbs, onAdd, onToggleView, view }) => {
   const [error, setError] = useState(null);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
-  const currentData = data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,17 +37,20 @@ const ListWallet = ({ breadcrumbs, onAdd, onToggleView, view }) => {
 
         const result = await response.json();
         if (Array.isArray(result.data)) {
-          setData(result.data.map(invoice => ({
+          const invoices = result.data.map(invoice => ({
             id: invoice.id,
             InvoiceNo: invoice.invoiceNumber,
             Charge: invoice.chargeAmount,
             Date: new Date(invoice.invoiceDate).toLocaleDateString(),
             Token: invoice.transactionId,
             status: invoice.status,
-          })));
+          }));
+          setData(invoices);
+          setFilteredData(invoices); // Initialize filteredData with fetched data
         } else {
           console.error('Expected result.data to be an array but got:', result.data);
           setData([]);
+          setFilteredData([]); // Clear filteredData if no data is fetched
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -132,6 +137,19 @@ const ListWallet = ({ breadcrumbs, onAdd, onToggleView, view }) => {
     setEditRowId(null);
   };
 
+  const handleSearchTermChange = (term) => {
+    const lowercasedTerm = term.toLowerCase();
+    if (term) {
+      const filtered = data.filter((item) =>
+        item.InvoiceNo.toLowerCase().includes(lowercasedTerm)
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data); // Reset filteredData when search term is cleared
+    }
+    setCurrentPage(1); // Reset to the first page after filtering
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -151,7 +169,12 @@ const ListWallet = ({ breadcrumbs, onAdd, onToggleView, view }) => {
           <div></div>
         </div>
         <div>
-          <SearchBar onAdd={onAdd} view={view} onToggleView={onToggleView} />
+          <SearchBar
+            onAdd={onAdd}
+            view={view}
+            onToggleView={onToggleView}
+            onSearchTermChange={handleSearchTermChange}
+          />
         </div>
       </div>
       <div className="p-4 border border-customPurple rounded-md shadow-custom">

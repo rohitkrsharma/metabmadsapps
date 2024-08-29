@@ -21,7 +21,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
               type='text'
               placeholder='Enter number of accounts'
               name='numberOfAccounts'
-              value={formData.numberOfAccounts || ''}
+              value={formData.numberOfAccounts}
               onChange={handleInputChange}
             />
           </div>
@@ -32,7 +32,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
               type='text'
               placeholder='Enter base fee'
               name='baseFee'
-              value={formData.baseFee || ''}
+              value={formData.baseFee}
               onChange={handleInputChange}
             />
           </div>
@@ -43,7 +43,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
               type='text'
               placeholder='Enter additional A/C fee'
               name='additionalAccountFees'
-              value={formData.additionalAccountFees || ''}
+              value={formData.additionalAccountFees}
               onChange={handleInputChange}
             />
           </div>
@@ -57,7 +57,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
                 type='text'
                 placeholder='Enter number of pages'
                 name='numberOfPages'
-                value={formData.numberOfPages || ''}
+                value={formData.numberOfPages}
                 onChange={handleInputChange}
               />
             </div>
@@ -68,7 +68,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
                 type='text'
                 placeholder='Enter commission'
                 name='commission'
-                value={formData.commission || ''}
+                value={formData.commission}
                 onChange={handleInputChange}
               />
             </div>
@@ -79,7 +79,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
                 type='text'
                 placeholder='Enter A/C free or free coupon'
                 name='numberOfFreeAccountsOrCoupons'
-                value={formData.numberOfFreeAccountsOrCoupons || ''}
+                value={formData.numberOfFreeAccountsOrCoupons}
                 onChange={handleInputChange}
               />
             </div>
@@ -100,7 +100,7 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
             type='text'
             placeholder='Enter free coupon account no'
             name='couponFee'
-            value={formData.couponFee || ''}
+            value={formData.couponFee}
             onChange={handleInputChange}
           />
         </div>

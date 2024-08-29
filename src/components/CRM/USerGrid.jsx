@@ -10,6 +10,7 @@ const UserGrid = () => {
   const [view, setView] = useState('grid');
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]); // Filtered users state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -28,7 +29,6 @@ const UserGrid = () => {
       }
 
       const data = await response.json();
-      console.log('Fetched data:', data);
 
       if (Array.isArray(data.data)) {
         const mappedUsers = data.data.map(user => ({
@@ -40,6 +40,7 @@ const UserGrid = () => {
           profilePicture: user.profilePicture,
         }));
         setUsers(mappedUsers);
+        setFilteredUsers(mappedUsers); // Initialize filtered users
       } else {
         throw new Error('Unexpected data format');
       }
@@ -55,6 +56,15 @@ const UserGrid = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleSearchTermChange = (term) => {
+    const lowercasedTerm = term.toLowerCase();
+    const filtered = users.filter(user =>
+      user.acName.toLowerCase().includes(lowercasedTerm) ||
+      user.contact.toLowerCase().includes(lowercasedTerm)
+    );
+    setFilteredUsers(filtered); // Update filtered users
+  };
 
   const onToggleView = (view) => {
     setView(view);
@@ -114,7 +124,7 @@ const UserGrid = () => {
             )}
             <div
               className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 rounded-md text-white font-medium cursor-pointer"
-              onClick={() => navigate(`/customer-view/${id}`)} // Use ID here
+              onClick={() => navigate(`/customer-view/${id}`)}
             >
               View Details
             </div>
@@ -137,15 +147,22 @@ const UserGrid = () => {
       {!showAddCustomer && (
         <div className='flex justify-between mb-3'>
           <div></div>
-          <div><SearchBar onToggleView={onToggleView} currentView={view} onAdd={onAddCustomer} /></div>
+          <div>
+            <SearchBar
+              onToggleView={onToggleView}
+              currentView={view}
+              onAdd={onAddCustomer}
+              onSearchTermChange={handleSearchTermChange} // Pass search term handler
+            />
+          </div>
         </div>
       )}
       {showAddCustomer ? (
         <AddCustomer onBack={onBack} />
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {users.length > 0 ? (
-            users.map((user) => (
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
               <ProfileCard
                 key={user.id}
                 acName={user.acName}
@@ -161,7 +178,7 @@ const UserGrid = () => {
           )}
         </div>
       ) : (
-        <UserListView users={users} />
+        <UserListView users={filteredUsers} />  // Pass filtered users to list view
       )}
     </>
   );

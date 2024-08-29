@@ -1,37 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { API_BASE_URL, fetchToken } from '../utils/auth';
+import React, { useState } from 'react';
 
-const UserListView = () => {
-  const [usersData, setUsersData] = useState([]);
+const UserListView = ({ users }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  // Function to fetch user data
-  const fetchUsersData = async () => {
-    try {
-      const token = await fetchToken();
-      const response = await fetch(`${API_BASE_URL}/UserManagement`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const { data } = await response.json(); // Assuming `data` is the key holding the array of user objects.
-      setUsersData(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      setUsersData([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsersData();
-  }, []);
 
   // Function to toggle selection of a user
   const toggleSelectUser = (userId) => {
@@ -44,20 +16,20 @@ const UserListView = () => {
 
   // Function to handle select all users
   const handleSelectAll = () => {
-    if (selectedUsers.length === usersData.length) {
+    if (selectedUsers.length === users.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(usersData.map((user) => user.id));
+      setSelectedUsers(users.map((user) => user.id));
     }
   };
 
   // Get the current page data
   const startIndex = (currentPage - 1) * pageSize;
-  const currentPageData = usersData.slice(startIndex, startIndex + pageSize);
+  const currentPageData = users.slice(startIndex, startIndex + pageSize);
 
   // Function to handle next page
   const handleNextPage = () => {
-    if (startIndex + pageSize < usersData.length) {
+    if (startIndex + pageSize < users.length) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -70,7 +42,7 @@ const UserListView = () => {
   };
 
   // Calculate total pages
-  const totalPages = Math.ceil(usersData.length / pageSize);
+  const totalPages = Math.ceil(users.length / pageSize);
 
   return (
     <>
@@ -84,16 +56,15 @@ const UserListView = () => {
               <th className="px-2 py-1 border border-customPurple text-left">
                 <input
                   type="checkbox"
-                  checked={selectedUsers.length === usersData.length}
+                  checked={selectedUsers.length === users.length}
                   onChange={handleSelectAll}
                   className="w-4 h-4"
                 />
               </th>
-              <th className="px-4 py-2 border border-customPurple text-left">UserId</th>
               <th className="px-4 py-2 border border-customPurple text-left">Account Name</th>
+              <th className="px-4 py-2 border border-customPurple text-left">Contact</th>
               <th className="px-4 py-2 border border-customPurple text-left">Member Since</th>
               <th className="px-4 py-2 border border-customPurple text-left">User Type</th>
-              <th className="px-4 py-2 border border-customPurple text-left">Contact</th>
             </tr>
           </thead>
           <tbody>
@@ -107,18 +78,23 @@ const UserListView = () => {
                     className="w-4 h-4"
                   />
                 </td>
-                <td className="px-1 py-1 border border-customPurple">{user.userId}</td>
-                <td className="px-1 py-1 border border-customPurple">{user.accountName}</td>
-                <td className="px-1 py-1 border border-customPurple">{new Date(user.createdDate).toLocaleDateString()}</td>
-                <td className="px-1 py-1 border border-customPurple">{user.userTypeId}</td>
-                <td className="px-1 py-1 border border-customPurple">{user.contactNumber}</td>
+                <td className="px-1 py-1 border border-customPurple">{user.acName}</td>
+                <td className="px-1 py-1 border border-customPurple">{user.contact}</td>
+                <td className="px-1 py-1 border border-customPurple">{new Date(user.memberSince).toLocaleDateString()}</td>
+                <td className="px-2 py-1  text-left border border-customPurple">
+                  {user.userTypeId === 1 ? (
+                    <span className="bg-purple-500 text-white px-2 py-1 rounded-md">Reseller</span>
+                  ) : (
+                    <span className="bg-pink-500 text-white px-2 py-1 rounded-md">Customer</span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="flex text-xs justify-between items-center mt-2">
           <span>
-            Showing {startIndex + 1} to {Math.min(startIndex + pageSize, usersData.length)} of {usersData.length} entries
+            Showing {startIndex + 1} to {Math.min(startIndex + pageSize, users.length)} of {users.length} entries
           </span>
           <div className="flex items-center space-x-2">
             <button
@@ -131,17 +107,16 @@ const UserListView = () => {
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
-                className={`px-3 py-1 border border-gray-300 rounded ${currentPage === i + 1 ? 'bg-customPurple text-white' : ''
-                  }`}
+                className={`px-3 py-1 border border-gray-300 rounded ${currentPage === i + 1 ? 'bg-customPurple text-white' : ''}`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
             <button
-              className="px-3 py-1 border border-gray-300 rounded ml-2"
+              className="px-3 py-1 border border-gray-300 rounded"
               onClick={handleNextPage}
-              disabled={startIndex + pageSize >= usersData.length}
+              disabled={startIndex + pageSize >= users.length}
             >
               Next
             </button>

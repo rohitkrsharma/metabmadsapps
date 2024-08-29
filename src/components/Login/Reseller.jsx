@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchToken } from '../utils/auth';
-
+import { API_BASE_URL, fetchAdminToken, fetchToken } from '../utils/auth';
+import { toast, ToastContainer } from 'react-toastify'; // Import Toastify components
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
+import axios from 'axios';
 
 const AdminLogin = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState('');
@@ -9,28 +11,46 @@ const AdminLogin = ({ setIsAuthenticated }) => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    console.log('Username:', username);
-    console.log('Password:', password);
-
     try {
-      const token = await fetchToken(username, password);
-      console.log('Token:', token);
+      const token = await fetchToken();
+      const response = await axios.post(
+        `${API_BASE_URL}/Auth/AdminLogin`,
+        {
+          userId: username,
+          password: password,
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'accept': '*/*',
+          },
+        }
+      );
 
-      // Store the token in local storage
-      localStorage.setItem('token', token);
+      if (response.status === 200) {
+        setIsAuthenticated(true);
+        const { id } = response.data.data; // Extract the id from the response data
+        localStorage.setItem('adminId', id); // Save id to localStorage
 
-      setIsAuthenticated(true);
-      navigate('/dashboard');
+        // Successfully logged in, navigate to dashboard
+        navigate('/dashboard');
+      } else {
+        // Show toast notification for invalid credentials
+        toast.error('Please use valid credentials');
+      }
     } catch (error) {
-      console.error('Login failed:', error.message);
-      alert('Login failed: ' + error.message);
+      // Handle error and show toast notification
+      toast.error('Invalid UserId or Password.');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 font-poppins">
+      {/* ToastContainer should be added once in your component tree */}
+      <ToastContainer />
       <div className="flex flex-col-reverse md:flex-row p-6 gap-5 bg-white shadow-md rounded-3xl max-w-5xl mx-auto">
-        <div className="w-[70%] flex flex-col items-center justify-between ">
+        <div className="w-[70%] flex flex-col items-center justify-between">
           <div className="flex flex-col mt-10">
             <div className="flex gap-2 items-center">
               <h1 className="text-4xl font-bold mb-4 text-center text-pink-600">Login as an Admin</h1>

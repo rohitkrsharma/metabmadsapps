@@ -31,13 +31,13 @@ const EveryBmAds = ({ userId, isEditing }) => {
       console.log("Fetched Data:", data);
 
       setBmAdsData({
-        noOfAccount: data.numberOfAccounts || '',
-        accountName: data.accountName || '',
-        baseFee: data.baseFee || '',
-        additionalFee: data.additionalAccountFees || '',
-        pageName: data.numberOfPages || '',
-        commission: data.commission || '',
-        couponFee: data.numberOfFreeAccountsOrCoupons || '',
+        noOfAccount: data.numberOfAccounts,
+        accountName: data.accountName,
+        baseFee: data.baseFee,
+        additionalFee: data.additionalAccountFees,
+        pageName: data.numberOfPages,
+        commission: data.commission,
+        couponFee: data.numberOfFreeAccountsOrCoupons,
       });
     } catch (error) {
       console.error('Error fetching BM Ads data:', error);

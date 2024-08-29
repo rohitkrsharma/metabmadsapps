@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import Select from 'react-select';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
+import { toast, ToastContainer } from 'react-toastify';
 
 const DepositeAdd = ({ onBack, onAdd }) => {
   const [address, setAddress] = useState('');
@@ -43,11 +44,11 @@ const DepositeAdd = ({ onBack, onAdd }) => {
 
   const handleSave = async () => {
     if (!address.trim()) {
-      alert('Address field cannot be empty.');
+      toast.error('Address field cannot be empty.');
       return;
     }
     if (!network) {
-      alert('Please select a network.');
+      toast.error('Please select a network.');
       return;
     }
 
@@ -86,7 +87,7 @@ const DepositeAdd = ({ onBack, onAdd }) => {
 
     } catch (error) {
       console.error('Error adding data:', error);
-      alert(`Error: ${error.message}`);
+      toast.error(`Error: ${error.message}`);
     }
   };
 
@@ -172,6 +173,7 @@ const DepositeAdd = ({ onBack, onAdd }) => {
           </div>
         </form>
       </div>
+      <ToastContainer position="top-right" autoClose={5000} />
     </>
   );
 };

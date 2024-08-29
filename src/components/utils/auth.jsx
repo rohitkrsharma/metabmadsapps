@@ -27,6 +27,26 @@ export const fetchToken = async () => {
   }
 };
 
+// Admin Login
+
+export const fetchAdminToken = async (userId, password) => {
+  try {
+    const response = await axios.post('http://3.110.160.106:8080/api/Auth/AdminLogin', {
+      userId,
+      password,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': '*/*',
+      },
+    });
+
+    return response.data.token;
+  } catch (error) {
+    console.error('Error fetching admin token:', error);
+    throw error;
+  }
+};
 
 // usermanagement
 

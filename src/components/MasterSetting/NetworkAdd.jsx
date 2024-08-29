@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { API_BASE_URL, fetchToken } from '../utils/auth'; // Adjust import path if necessary
+import { API_BASE_URL, fetchToken } from '../utils/auth';
+import { toast, ToastContainer } from 'react-toastify';
 
 const NetworkAdd = ({ onBack, onSave }) => {
   const [networkName, setNetworkName] = useState('');
@@ -8,7 +9,7 @@ const NetworkAdd = ({ onBack, onSave }) => {
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); // Add state for error messages
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -23,8 +24,6 @@ const NetworkAdd = ({ onBack, onSave }) => {
   };
 
   const handleSave = async () => {
-    setIsLoading(true); // Start loading
-    setErrorMessage(''); // Reset error message
     const token = await fetchToken(); // Fetch token from utility
 
     const formData = new FormData();
@@ -38,7 +37,7 @@ const NetworkAdd = ({ onBack, onSave }) => {
       formData.append('ImageFile', ''); // Send empty value if no file is selected
     }
     formData.append('Status', isActive ? true : false); // Convert boolean to string
-    formData.append('CreatedBy', 'Rohit'); // Send empty value
+    formData.append('CreatedBy', 'Rohit');
 
     try {
       const url = `${API_BASE_URL}/CryptoNetworks`;
@@ -61,16 +60,20 @@ const NetworkAdd = ({ onBack, onSave }) => {
           throw new Error(`Failed to save network. Status: ${response.status}`);
         }
 
-        if (errorData && errorData.message) {
-          setErrorMessage(errorData.message); // Set error message from backend
+        // Show toast notifications one by one for each validation error
+        if (errorData.errors) {
+          const errorFields = Object.keys(errorData.errors);
+          errorFields.forEach((field) => {
+            errorData.errors[field].forEach((errorMsg) => {
+              toast.error(errorMsg); // Show toast for each error message
+            });
+          });
         } else {
           throw new Error(`Failed to save network. Status: ${response.status}`);
         }
-
-        return; // Exit the function early on error
+        return; // Exit on error
       }
 
-      // Notify parent component with the new data
       let result;
       try {
         result = JSON.parse(responseText);
@@ -79,11 +82,11 @@ const NetworkAdd = ({ onBack, onSave }) => {
       }
 
       if (result && result.data) {
-        onSave(result.data);
+        onSave(result.data); // Notify parent
       }
     } catch (error) {
       console.error('Error saving data:', error);
-      setErrorMessage(error.message); // Set error message for unexpected errors
+      toast.error(error.message); // Display unexpected error
     } finally {
       setIsLoading(false); // Stop loading
     }
@@ -96,23 +99,18 @@ const NetworkAdd = ({ onBack, onSave }) => {
           className='flex items-center gap-1 bg-customPurple rounded-md px-4 py-2 text-white hover:bg-hcolor'
           onClick={onBack}
         >
-          <FaArrowLeft /> Back
+          <FaArrowLeft />Back
         </button>
         <button
           className="flex items-center bg-green-500 rounded-md px-4 py-2 text-white hover:bg-green-600"
           onClick={handleSave}
-          disabled={isLoading} // Disable button during loading
+          disabled={isLoading}
         >
           {isLoading ? 'Saving...' : 'Submit'}
         </button>
       </div>
       <div className="p-4 border border-customPurple rounded-md shadow-custom max-w-3xl">
-        {isLoading && <div className="loader">Loading...</div>} {/* Loader */}
-        {errorMessage && (
-          <div className="alert alert-error text-red-500 mb-4">
-            {errorMessage} {/* Display error message */}
-          </div>
-        )}
+        {isLoading && <div className="loader">Loading...</div>}
         <form>
           <div className="mb-4 flex justify-end">
             <label className="flex items-center cursor-pointer">
@@ -162,6 +160,7 @@ const NetworkAdd = ({ onBack, onSave }) => {
           </div>
         </form>
       </div>
+      <ToastContainer position="top-right" autoClose={5000} />
     </>
   );
 };

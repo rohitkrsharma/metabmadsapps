@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
 import { DateTime } from 'luxon';
+import { toast, ToastContainer } from 'react-toastify';
 
 const timeZoneOptions = [
   { value: 'Asia/Kolkata', label: 'Asia/India' },
@@ -11,10 +12,10 @@ const timeZoneOptions = [
   { value: 'Europe/Berlin', label: 'Europe/Berlin' }
 ];
 
-const AddBM = ({ onBack, showBackButton }) => {
+const AddBM = ({ onBack, showBackButton, isAddingFromAdd }) => {
   const [formData, setFormData] = useState({
     Id: '0',
-    UserTypeId: '2',
+    UserTypeId: '3',
     UserManagementId: '4',
     OrderNo: '',
     Name: '',
@@ -59,7 +60,7 @@ const AddBM = ({ onBack, showBackButton }) => {
     const { id, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [id]: type === 'checkbox' ? (checked ? 12 : 0) : value,
+      [id]: type === 'checkbox' ? checked : value,
     });
   };
 
@@ -82,10 +83,34 @@ const AddBM = ({ onBack, showBackButton }) => {
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Error response from server:', errorData);
+        // Check if error data contains validation errors
+        if (errorData.errors) {
+          const errorMessages = errorData.errors;
+
+          // Get the first error field and its corresponding message
+          const firstErrorField = Object.keys(errorMessages)[0];
+          const firstErrorMessage = errorMessages[firstErrorField][0];
+
+          // Show toast for the first error message
+          toast.error(firstErrorMessage, {
+            position: 'top-right',
+            autoClose: 3000,
+          });
+        }
         throw new Error('Network response was not ok');
       }
+
       const responseData = await response.json();
       console.log('Data submitted successfully:', responseData);
+
+      // Show success toast message
+      toast.success('Data submitted successfully!', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+
+      // After successful submission, open AdsApproval page or update state
+      // Example: navigate('/ads-approval');
     } catch (error) {
       console.error('Error submitting data:', error);
     }
@@ -94,7 +119,7 @@ const AddBM = ({ onBack, showBackButton }) => {
   return (
     <div className="container">
       <div className='flex gap-3 mb-3'>
-        {showBackButton && (
+        {showBackButton && !isAddingFromAdd && (
           <div className="gap-2 flex">
             <button
               className='flex items-center gap-1 bg-customPurple rounded-md px-4 py-2 text-white hover:bg-hcolor'
@@ -181,7 +206,6 @@ const AddBM = ({ onBack, showBackButton }) => {
                   </option>
                 ))}
               </select>
-              {/* <div className="mt-2 text-sm text-gray-700">Current Time: {currentTime}</div> */}
             </div>
             <div className='flex items-center gap-5'>
               <label htmlFor="SelfProfileLink" className="text-sm font-medium w-36 text-gray-700">Self Profile Link :</label>
@@ -208,19 +232,19 @@ const AddBM = ({ onBack, showBackButton }) => {
               />
             </div>
           </div>
-          <div className="form-check flex items-center">
+          <div className='flex items-center gap-5'>
             <input
               type="checkbox"
-              id="redeemCheckbox"
-              className="form-check-input h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-              checked={formData.RedeemedAmount === 12}
+              id="redeem"
+              className="form-checkbox"
+              checked={formData.redeem}
               onChange={handleChange}
             />
-            <label htmlFor="redeemCheckbox" className="ml-2 block text-md text-gray-900 font-bold">Redeem</label>
-            <span className="ml-2 text-gray-500 font-bold text-md">$12</span>
+            <label htmlFor="redeem" className="text-sm font-medium text-gray-700">Redeem</label>
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };

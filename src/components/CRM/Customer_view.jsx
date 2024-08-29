@@ -48,19 +48,19 @@ const CustomerView = ({ onBack }) => {
         const profilePictureUrl = user.profilePicture ? `http://3.110.160.106:8080/${user.profilePicture}` : 'https://metaadsapp.s3.ap-south-1.amazonaws.com/default-avatar.png';
         setFormData({
           id: user.id,
-          userId: user.userId || '',
-          accountName: user.accountName || '',
-          userName: user.userName || '',
-          contactNumber: user.contactNumber || '',
+          userId: user.userId,
+          accountName: user.accountName,
+          userName: user.userName,
+          contactNumber: user.contactNumber,
           profilePicture: profilePictureUrl,
           userTypeId: user.userTypeId || 2, // Assuming 2 is 'Customer'
         });
         setOriginalData({
           id: user.id,
-          userId: user.userId || '',
-          accountName: user.accountName || '',
-          userName: user.userName || '',
-          contactNumber: user.contactNumber || '',
+          userId: user.userId,
+          accountName: user.accountName,
+          userName: user.userName,
+          contactNumber: user.contactNumber,
           profilePicture: profilePictureUrl,
           userTypeId: user.userTypeId || 2,
         });
@@ -105,9 +105,8 @@ const CustomerView = ({ onBack }) => {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, bmAdsData }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -152,7 +151,7 @@ const CustomerView = ({ onBack }) => {
 
   const getUserTypeColor = () => {
     if (formData.userTypeId === 1) {
-      return 'bg-purple-500';
+      return 'bg-customPurple';
     } else if (formData.userTypeId === 2) {
       return 'bg-pink-500';
     }

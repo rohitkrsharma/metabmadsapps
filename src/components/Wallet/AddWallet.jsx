@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
 
 const AddForm = ({ onBack, onAddSuccess }) => {
   const [fileName, setFileName] = useState('No file chosen');
@@ -12,7 +13,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
     transactionId: '',
     file: null,
     cryptoNetworkImage: '',
-    cryptoNetworkName: '', // Add network name to form data
+    cryptoNetworkName: '',
   });
   const [loading, setLoading] = useState(false);
   const [deposits, setDeposits] = useState([]);
@@ -26,7 +27,6 @@ const AddForm = ({ onBack, onAddSuccess }) => {
   const fetchInitialData = async () => {
     try {
       const token = await fetchToken();
-
       // Fetch the latest invoice data
       const invoiceResponse = await fetch(`${API_BASE_URL}/Invoices`, {
         headers: {
@@ -84,7 +84,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
       USD: address,
       network: selectedDeposit ? selectedDeposit.cryptoNetworkId : '',
       cryptoNetworkImage: selectedDeposit ? selectedDeposit.cryptoNetworkImage : '',
-      cryptoNetworkName: selectedDeposit ? selectedDeposit.cryptoNetworkName : '', 
+      cryptoNetworkName: selectedDeposit ? selectedDeposit.cryptoNetworkName : '',
     }));
   };
 
@@ -102,7 +102,6 @@ const AddForm = ({ onBack, onAddSuccess }) => {
     submitData.append('CreatedBy', 'Rohit');
 
     try {
-      setLoading(true);
       const token = await fetchToken();
       const response = await fetch(`${API_BASE_URL}/Invoices`, {
         method: 'POST',
@@ -114,7 +113,11 @@ const AddForm = ({ onBack, onAddSuccess }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.title);
+        const errors = Object.values(errorData.errors || {}).flat();
+        if (errors.length > 0) {
+          toast.error(errors[0]);
+        }
+        throw new Error(errors[0]);
       }
 
       const result = await response.json();
@@ -124,7 +127,6 @@ const AddForm = ({ onBack, onAddSuccess }) => {
     } catch (error) {
       console.error('Error adding data:', error);
     } finally {
-      setLoading(false);
     }
   };
 
@@ -233,6 +235,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
