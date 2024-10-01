@@ -3,6 +3,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
 import { DateTime } from 'luxon';
 import { toast, ToastContainer } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const timeZoneOptions = [
   { value: 'Asia/Kolkata', label: 'Asia/India' },
@@ -13,6 +14,7 @@ const timeZoneOptions = [
 ];
 
 const AddBM = ({ onBack, showBackButton, isAddingFromAdd }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     Id: '0',
     UserTypeId: '3',
@@ -103,14 +105,9 @@ const AddBM = ({ onBack, showBackButton, isAddingFromAdd }) => {
       const responseData = await response.json();
       console.log('Data submitted successfully:', responseData);
 
-      // Show success toast message
-      toast.success('Data submitted successfully!', {
-        position: 'top-right',
-        autoClose: 3000,
-      });
+      navigate('/bm/approval');
+      onBack();
 
-      // After successful submission, open AdsApproval page or update state
-      // Example: navigate('/ads-approval');
     } catch (error) {
       console.error('Error submitting data:', error);
     }

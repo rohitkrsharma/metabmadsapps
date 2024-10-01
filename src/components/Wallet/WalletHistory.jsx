@@ -1,136 +1,154 @@
+import React, { useEffect, useState } from 'react';
 import { DuplicateIcon, PencilIcon, TrashIcon } from '@heroicons/react/solid';
-import React, { useState, useEffect } from 'react';
 import SearchBar from '../SearchBar';
+import ListWalletView from './ListWalletView';
 import { API_BASE_URL, fetchToken } from '../utils/auth';
-import { useNavigate } from 'react-router-dom';
-import AdsApprovalFormView from '../BM/AdsApprovalFormView';
 
-const WalletHistory = ({ onAdd, view, onToggleView }) => {
+const WalletHistory = ({ onAdd, onToggleView, view }) => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]); // Filtered data state
-  const [selectedRow, setSelectedRow] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [editRowId, setEditRowId] = useState(null);
+  const [editRowData, setEditRowData] = useState({});
+  const itemsPerPage = 10;
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editingRow, setEditingRow] = useState(null);
-  const [formData, setFormData] = useState({});
-  const pageSize = 10;
-  const navigate = useNavigate();
+
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const currentData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const token = await fetchToken();
-        const response = await fetch(`${API_BASE_URL}/BMAdsOrders/GetBMAdsOrders`, {
+        const response = await fetch(`${API_BASE_URL}/Invoices`, {
+          method: 'GET',
           headers: {
-            Authorization: `Bearer ${token}`,
+            'accept': '*/*',
+            'Authorization': `Bearer ${token}`,
           },
         });
+
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
+
         const result = await response.json();
-        setData(result.data);
-        setFilteredData(result.data); // Initialize filteredData with all data
+        if (Array.isArray(result.data)) {
+          const invoices = result.data.map(invoice => ({
+            id: invoice.id,
+            InvoiceNo: invoice.invoiceNumber,
+            Charge: invoice.chargeAmount,
+            Date: new Date(invoice.invoiceDate).toISOString(),
+            Token: invoice.transactionId,
+            status: invoice.status,
+          }));
+          const reversedInvoices = invoices.reverse();
+          setData(reversedInvoices);
+          setFilteredData(reversedInvoices); // Initialize filteredData with fetched data
+        } else {
+          console.error('Expected result.data to be an array but got:', result.data);
+          setData([]);
+          setFilteredData([]); // Clear filteredData if no data is fetched
+        }
       } catch (error) {
+        console.error('Error fetching data:', error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
-  const getStatusButtonColor = (status) => {
-    switch (status) {
-      case 'Done':
-        return 'bg-green-600';
-      case 'Pending':
-        return 'bg-purple-500';
-      case 'Processing':
-        return 'bg-pink-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   const handleRowClick = (row) => {
-    setSelectedRow(row);
+    if (!editRowId) {
+      setSelectedRow(row);
+    }
   };
 
   const handleBack = () => {
     setSelectedRow(null);
-    setEditingRow(null); // Clear edit state on back
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
   };
 
   const handleNextPage = () => {
-    if (currentPage < Math.ceil(filteredData.length / pageSize)) {
-      setCurrentPage(currentPage + 1);
-    }
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+  const handlePageClick = (page) => {
+    setCurrentPage(page);
   };
 
-  const totalPages = Math.ceil(filteredData.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentPageData = filteredData.slice(startIndex, startIndex + pageSize);
-
-  const handleEdit = (row) => {
-    setEditingRow(row.id);
-    setFormData(row);
+  const handleEditClick = (row, e) => {
+    e.stopPropagation();
+    setEditRowId(row.id);
+    setEditRowData(row);
   };
 
-  const handleSave = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditRowData({
+      ...editRowData,
+      [name]: value,
+    });
+  };
+
+  const handleSaveClick = async (e) => {
+    e.stopPropagation();
     try {
       const token = await fetchToken();
-      const response = await fetch(`${API_BASE_URL}/BMAdsOrders/${editingRow}`, {
+      const formData = new FormData();
+      // Append all necessary fields to FormData
+      for (const key in editRowData) {
+        formData.append(key, editRowData[key]);
+      }
+      if (!formData.has('transactionId')) {
+        formData.append('transactionId', editRowData.Token);
+      }
+      const response = await fetch(`${API_BASE_URL}/Invoices/${editRowId}`, {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Failed to update data');
       }
 
-      const result = await response.json();
-      console.log('Data updated successfully:', result);
-      const updatedData = data.map((item) => (item.id === editingRow ? result : item));
-      setData(updatedData);
-      setFilteredData(updatedData); // Update filtered data
-      setEditingRow(null); // Exit edit mode
+      // Update the data in the UI
+      setData(data.map(item => item.id === editRowId ? editRowData : item));
+      setEditRowId(null);
     } catch (error) {
       console.error('Error updating data:', error);
     }
   };
 
-  const handleChange = (e) => {
-    const { id, value } = e.target;
-    setFormData({
-      ...formData,
-      [id]: value,
-    });
-  };
 
-  const handleAdd = () => {
-    navigate('/add-bm'); // Navigate to AddBM page
+  const handleCancelClick = (e) => {
+    e.stopPropagation();
+    setEditRowId(null);
   };
 
   const handleSearchTermChange = (term) => {
     const lowercasedTerm = term.toLowerCase();
-    const filtered = data.filter((item) =>
-      item.orderNo.toLowerCase().includes(lowercasedTerm)
-    );
-    setFilteredData(filtered); // Update filteredData based on search term
-    setCurrentPage(1); // Reset to first page after filtering
+    if (term) {
+      const filtered = data.filter((item) =>
+        item.InvoiceNo.toLowerCase().includes(lowercasedTerm)
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data); // Reset filteredData when search term is cleared
+    }
+    setCurrentPage(1); // Reset to the first page after filtering
   };
 
   if (loading) {
@@ -142,131 +160,148 @@ const WalletHistory = ({ onAdd, view, onToggleView }) => {
   }
 
   if (selectedRow) {
-    return <AdsApprovalFormView data={selectedRow} onBack={handleBack} />;
+    return <ListWalletView data={selectedRow} onBack={handleBack} />;
   }
 
   return (
     <>
       <div className='md:flex justify-between mb-4'>
-        <div>
-          {/* Breadcrumbs if needed */}
+        <div className="text-gray-700 flex gap-1">
+          <div></div>
         </div>
         <div>
-          <SearchBar
+          {/* <SearchBar
             onAdd={onAdd}
-            showAddAndView={true}
             view={view}
             onToggleView={onToggleView}
             onSearchTermChange={handleSearchTermChange}
+            placeholder={'Search by invoice No'}
+          /> */}
+          <SearchBar
+            onSearchTermChange={handleSearchTermChange}
+            onAdd={onAdd}
+            onToggleView={onToggleView}
+            currentView={view}
+            showAddAndView={true}
+            searchPlaceholder="Search by invoice No"
+            filterOptions={['Customer', 'Reseller']}
+            groupByOptions={['Category', 'Price', 'Brand']}
+            favoritesOptions={['Favorite', 'Favorite']}
           />
         </div>
       </div>
-      <div className='overflow-x-auto'>
-        <div className='p-4 border border-customPurple rounded-md shadow-custom overflow-x-auto'>
-          <div>
-            <table className='min-w-full border-t border-l border-r text-xs border-b border-customPurple'>
-              <thead className='bg-customPurple text-white'>
-                <tr>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>S.N</th>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>Order No</th>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>BM ID</th>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>Order Date</th>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>Status</th>
-                  <th className='px-4 py-1 border-r border-customPurple text-left'>BM Name</th>
-                  <th className='px-4 py-1 text-left'>Action</th>
-                </tr>
-              </thead>
-              <tbody className='bg-white'>
-                {currentPageData.map((item, index) => (
-                  <tr
-                    key={item.id}
-                    className={`border-b border-customPurple cursor-pointer ${index % 2 === 0 ? 'bg-gray-200' : ''
-                      }`}
-                    onClick={() => handleRowClick(item)}
-                  >
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      {startIndex + index + 1}
-                    </td>
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      {item.orderNo}
-                    </td>
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      {item.bmId}
-                    </td>
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      {item.createdDate}
-                    </td>
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      <button
-                        className={`px-2 py-1 text-white rounded ${getStatusButtonColor(item.status)}`}
-                      >
-                        {item.status}
+      <div className="p-4 border border-customPurple rounded-md shadow-custom">
+        <table className="min-w-full border-t border-l border-r text-xs border-b border-customPurple">
+          <thead className="bg-customPurple text-white">
+            <tr>
+              <th className="px-4 py-1 border-r border-customPurple text-left">S.N</th>
+              <th className="px-4 py-1 border-r border-customPurple text-left">Invoice No</th>
+              <th className="px-4 py-1 border-r border-customPurple text-left">Charge $</th>
+              <th className="px-4 py-1 border-r border-customPurple text-left">Date</th>
+              <th className="px-4 py-1 border-r border-customPurple text-left">Token</th>
+              <th className="px-4 py-1 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white">
+            {currentData.map((item, index) => (
+              <tr
+                key={item.id}
+                className={`cursor-pointer border-b border-customPurple ${index % 2 === 0 ? 'bg-gray-200' : ''}`}
+                onClick={() => handleRowClick(item)}
+              >
+                <td className="px-4 py-1 border-r border-customPurple">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="px-4 py-1 border-r border-customPurple">
+                  {editRowId === item.id ? (
+                    <input
+                      type="text"
+                      name="InvoiceNo"
+                      value={editRowData.InvoiceNo}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  ) : (
+                    item.InvoiceNo
+                  )}
+                </td>
+                <td className="px-4 py-1 border-r border-customPurple">
+                  {editRowId === item.id ? (
+                    <input
+                      type="text"
+                      name="Charge"
+                      value={editRowData.Charge}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  ) : (
+                    item.Charge
+                  )}
+                </td>
+                <td className="px-4 py-1 border-r border-customPurple">
+                  {editRowId === item.id ? (
+                    <input
+                      type="text"
+                      name="Date"
+                      value={editRowData.Date}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  ) : (
+                    item.Date
+                  )}
+                </td>
+                <td className="px-4 py-1 border-r border-customPurple">
+                  {editRowId === item.id ? (
+                    <input
+                      type="text"
+                      name="Token"
+                      value={editRowData.Token}
+                      onChange={handleInputChange}
+                      className="w-full"
+                    />
+                  ) : (
+                    item.Token
+                  )}
+                </td>
+                <td className="px-4 py-1 flex space-x-2">
+                  {editRowId === item.id ? (
+                    <>
+                      <button className="bg-blue-500 p-1 rounded text-white" onClick={handleSaveClick}>
+                        Save
                       </button>
-                    </td>
-                    <td className='px-4 py-1 border-r border-customPurple'>
-                      {item.name}
-                    </td>
-                    <td className='px-4 py-1 flex space-x-2'>
-                      <button
-                        className='bg-green-500 p-1 rounded text-white'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(item);
-                        }}
-                      >
-                        <PencilIcon data-tooltip-id='tooltip' data-tooltip-content='Edit' className='h-3 w-3' />
+                      <button className="bg-gray-500 p-1 rounded text-white" onClick={handleCancelClick}>
+                        Cancel
                       </button>
-                      <button
-                        className='bg-yellow-500 p-1 rounded text-white'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <DuplicateIcon data-tooltip-id='tooltip' data-tooltip-content='Duplicate' className='h-3 w-3' />
-                      </button>
-                      <button
-                        className='bg-red-500 p-1 rounded text-white'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                        }}
-                      >
-                        <TrashIcon data-tooltip-id='tooltip' data-tooltip-content='Delete' className='h-3 w-3' />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className='flex text-xs justify-between items-center mt-2'>
-              <span>
-                Showing {startIndex + 1} to {Math.min(startIndex + pageSize, filteredData.length)} of {filteredData.length} entries
-              </span>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={handlePreviousPage}
-                  className='px-3 py-1 border border-gray-300 rounded mr-2'
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={`px-3 py-1 border border-gray-300 rounded ${currentPage === i + 1 ? 'bg-customPurple text-white' : ''}`}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
+                    </>
+                  ) : (
+                    <button className="bg-green-500 p-1 rounded text-white" onClick={(e) => handleEditClick(item, e)}>
+                      <PencilIcon className="h-3 w-3" />
+                    </button>
+                  )}
+                  <button className="bg-yellow-500 p-1 rounded text-white">
+                    <DuplicateIcon className="h-3 w-3" />
                   </button>
-                ))}
-                <button
-                  onClick={handleNextPage}
-                  className='px-3 py-1 border border-gray-300 rounded'
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+                  <button className="bg-red-500 p-1 rounded text-white">
+                    <TrashIcon className="h-3 w-3" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="flex text-xs justify-between items-center mt-2">
+          <span>Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} results</span>
+          <div>
+            <button onClick={handlePrevPage} disabled={currentPage === 1} className="px-2 py-1 bg-gray-200 mr-1 rounded">
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button key={i + 1} onClick={() => handlePageClick(i + 1)} className={`px-2 py-1 bg-gray-300 mr-1 rounded ${currentPage === i + 1 ? 'bg-purple-700 text-white' : ''}`}>
+                {i + 1}
+              </button>
+            ))}
+            <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-2 py-1 bg-gray-200 rounded">
+              Next
+            </button>
           </div>
         </div>
       </div>

@@ -78,6 +78,11 @@ const UserGrid = () => {
     setShowAddCustomer(false);
   };
 
+  const onCustomerAdded = () => {
+    setShowAddCustomer(false);
+    fetchUsers(); // Refresh the grid after adding a new customer
+  };
+
   const ProfileCard = ({ acName, memberSince, id, contact, userTypeId, profilePicture }) => {
     const cardClasses = classNames(
       'bg-white border rounded-lg overflow-hidden shadow-custom',
@@ -117,10 +122,10 @@ const UserGrid = () => {
           </div>
           <div className="flex justify-end items-center gap-2 mt-5">
             {userTypeId === 1 && (
-              <div className="text-xs bg-purple-500 hover:bg-purple-600 px-2 py-1 rounded-md text-white font-medium">Reseller</div>
+              <div className="text-xs  px-2 py-1 border border-purple-700 rounded-md text-purple-700 font-medium">Reseller</div>
             )}
             {userTypeId === 2 && (
-              <div className="text-xs bg-pink-500 hover:bg-pink-600 px-2 py-1 rounded-md text-white font-medium">Customer</div>
+              <div className="text-xs border border-pink-600 px-2 py-1 rounded-md text-pink-600 font-medium">Customer</div>
             )}
             <div
               className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1 rounded-md text-white font-medium cursor-pointer"
@@ -141,6 +146,25 @@ const UserGrid = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
+  const handleFilterChange = (filters) => {
+    if (filters.length === 0) {
+      // If no filter is selected, show all users
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(user => {
+        // Check if 'Reseller' is selected and userTypeId is 1
+        if (filters.includes('Reseller') && user.userTypeId === 1) {
+          return true;
+        }
+        // Check if 'Customer' is selected and userTypeId is 2
+        if (filters.includes('Customer') && user.userTypeId === 2) {
+          return true;
+        }
+        return false;
+      });
+      setFilteredUsers(filtered);
+    }
+  };
 
   return (
     <>
@@ -149,16 +173,22 @@ const UserGrid = () => {
           <div></div>
           <div>
             <SearchBar
+              onSearchTermChange={handleSearchTermChange}
+              onAdd={onAddCustomer}
               onToggleView={onToggleView}
               currentView={view}
-              onAdd={onAddCustomer}
-              onSearchTermChange={handleSearchTermChange} // Pass search term handler
+              showAddAndView={true}
+              searchPlaceholder="Search by name or contact number"
+              filterOptions={['Customer', 'Reseller']}
+              groupByOptions={['Groupbyname', 'Groupbyname1', 'Groupbyname2']}
+              favoritesOptions={['Favorite', 'Favorite1']}
+              onFilterChange={handleFilterChange}
             />
           </div>
         </div>
       )}
       {showAddCustomer ? (
-        <AddCustomer onBack={onBack} />
+        <AddCustomer onBack={onBack} onCustomerAdded={onCustomerAdded} />
       ) : view === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filteredUsers.length > 0 ? (

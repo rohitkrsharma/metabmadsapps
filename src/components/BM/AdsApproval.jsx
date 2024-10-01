@@ -31,8 +31,9 @@ const AdsApproval = ({ onAdd, view, onToggleView }) => {
           throw new Error('Network response was not ok');
         }
         const result = await response.json();
-        setData(result.data);
-        setFilteredData(result.data); // Initialize filteredData with all data
+        const reversedData = result.data.reverse(); // Reverse the data
+        setData(reversedData); // Set the reversed data
+        setFilteredData(reversedData); // Initialize filteredData with reversed data
       } catch (error) {
         setError(error.message);
       } finally {
@@ -41,6 +42,7 @@ const AdsApproval = ({ onAdd, view, onToggleView }) => {
     };
     fetchData();
   }, []);
+
 
   const getStatusButtonColor = (status) => {
     switch (status) {
@@ -55,8 +57,22 @@ const AdsApproval = ({ onAdd, view, onToggleView }) => {
     }
   };
 
-  const handleRowClick = (row) => {
-    setSelectedRow(row);
+  const handleRowClick = async (row) => {
+    try {
+      const token = await fetchToken();
+      const response = await fetch(`${API_BASE_URL}/BMAdsOrders/${row.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const result = await response.json();
+      setSelectedRow(result);
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   const handleBack = () => {
@@ -153,11 +169,15 @@ const AdsApproval = ({ onAdd, view, onToggleView }) => {
         </div>
         <div>
           <SearchBar
-            onAdd={onAdd}
-            showAddAndView={true}
-            view={view}
-            onToggleView={onToggleView}
             onSearchTermChange={handleSearchTermChange}
+            onAdd={onAdd}
+            onToggleView={onToggleView}
+            currentView={view}
+            showAddAndView={true}
+            searchPlaceholder="Search by order No"
+            filterOptions={['Customer', 'Reseller']}
+            groupByOptions={['Category', 'Price', 'Brand']}
+            favoritesOptions={['Favorite', 'Favorite']}
           />
         </div>
       </div>

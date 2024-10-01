@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaArrowLeft } from 'react-icons/fa';
-import { API_BASE_URL, fetchToken } from '../utils/auth';
 import { toast, ToastContainer } from 'react-toastify';
+import { API_BASE_URL, fetchToken } from '../utils/auth';
 
 const NetworkAdd = ({ onBack, onSave }) => {
   const [networkName, setNetworkName] = useState('');
@@ -9,7 +9,6 @@ const NetworkAdd = ({ onBack, onSave }) => {
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];

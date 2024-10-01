@@ -73,13 +73,13 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
               />
             </div>
             <div className='flex gap-2 items-center'>
-              <label className='w-60'>A/C Free/Free coupon :</label>
+              <label className='w-60'>Additional Page fee :</label>
               <input
                 className='border w-full border-gray-300 rounded-md p-2'
                 type='text'
-                placeholder='Enter A/C free or free coupon'
+                placeholder='Enter additonal pages'
                 name='numberOfFreeAccountsOrCoupons'
-                value={formData.numberOfFreeAccountsOrCoupons}
+                value={formData.additionalPageFees}
                 onChange={handleInputChange}
               />
             </div>
@@ -94,13 +94,13 @@ const AddCustomerEveryBM = ({ formData, setFormData }) => {
       </div>
       <div className='flex-1 justify-between'>
         <div className='flex gap-2 items-center'>
-          <label className='w-44'>No of A/C :</label>
+          <label className='w-44'>Amount :</label>
           <input
             className='border w-1/3 border-gray-300 rounded-md p-2'
             type='text'
-            placeholder='Enter free coupon account no'
+            placeholder='Enter amount'
             name='couponFee'
-            value={formData.couponFee}
+            value={formData.numberOfFreeAccountsOrCoupons}
             onChange={handleInputChange}
           />
         </div>

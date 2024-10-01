@@ -4,8 +4,10 @@ import { HiOutlineChevronDown, HiOutlineChevronRight } from 'react-icons/hi';
 import { MdDashboard } from 'react-icons/md';
 import { Link, useLocation } from 'react-router-dom';
 import { Tooltip } from 'react-tooltip';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const Sidebar = ({ isCollapsed }) => {
+  const { t } = useTranslation(); // Initialize translation function
   const [activeMenu, setActiveMenu] = useState(null);
   const [activeSubMenu, setActiveSubMenu] = useState(null);
   const location = useLocation();
@@ -58,7 +60,7 @@ const Sidebar = ({ isCollapsed }) => {
             <div className="p-4 text-sm">
               <input
                 type="text"
-                placeholder="Start typing to search..."
+                placeholder={t('search_placeholder')}
                 className="w-full px-4 py-2 rounded-full bg-search placeholder-gray-300 focus:outline-none"
               />
             </div>
@@ -68,13 +70,13 @@ const Sidebar = ({ isCollapsed }) => {
           <ul className="space-y-2">
             <li className="flex flex-col transition-transform duration-300 transform hover:scale-105">
               <Link to="/dashboard" className={`flex items-center p-2 rounded-md ${activeMenu === 'dashboard' ? 'bg-hcolor' : 'hover:bg-hcolor'} w-full text-left`} onClick={() => handleMenuClick('dashboard')}>
-                <MdDashboard data-tooltip-id="tooltip" data-tooltip-content="Dashboard" />
-                {!isCollapsed && <span className="ml-4">Dashboard</span>}
+                <MdDashboard data-tooltip-id="tooltip" data-tooltip-content={t('dashboard')} />
+                {!isCollapsed && <span className="ml-4">{t('dashboard')}</span>}
               </Link>
             </li>
             <MenuItem
-              title="CRM"
-              icon={<FaUserMd data-tooltip-id="tooltip" data-tooltip-content="CRM" />}
+              title={t('crm')}
+              icon={<FaUserMd data-tooltip-id="tooltip" data-tooltip-content={t('crm')} />}
               menuKey="crm"
               activeMenu={activeMenu}
               handleMenuClick={handleMenuClick}
@@ -82,11 +84,11 @@ const Sidebar = ({ isCollapsed }) => {
               activeSubMenu={activeSubMenu}
               handleSubMenuClick={handleSubMenuClick}
             >
-              <SubMenuLink to="/crm/customer" text="Customer" isCollapsed={isCollapsed} icon={<FaUserMd data-tooltip-id="tooltip" data-tooltip-content="Customer" />} />
+              <SubMenuLink to="/crm/customer" text={t('customer')} isCollapsed={isCollapsed} icon={<FaUserMd data-tooltip-id="tooltip" data-tooltip-content={t('customer')} />} />
             </MenuItem>
             <MenuItem
-              title="BM/Ads Management"
-              icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content="BM/Ads Management" />}
+              title={t('bm')}
+              icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content={t('bmAdsManagement')} />}
               menuKey="bm"
               activeMenu={activeMenu}
               handleMenuClick={handleMenuClick}
@@ -94,26 +96,25 @@ const Sidebar = ({ isCollapsed }) => {
               activeSubMenu={activeSubMenu}
               handleSubMenuClick={handleSubMenuClick}
             >
-              <SubMenuLink to="/bm/approval" text="BM/ADS Approval" isCollapsed={isCollapsed} icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content="BM/ADS Approval" />} />
-              <SubMenuLink to="/bm/add" text="Add BM/ADS" isCollapsed={isCollapsed} icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content="Add BM/ADS" />} />
+              <SubMenuLink to="/bm/approval" text={t('bm_approval')} isCollapsed={isCollapsed} icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content={t('bmAdsApproval')} />} />
+              <SubMenuLink to="/bm/add" text={t('bm_add')} isCollapsed={isCollapsed} icon={<FaBriefcase data-tooltip-id="tooltip" data-tooltip-content={t('addBM')} />} />
             </MenuItem>
             <MenuItem
-              title="Wallets Management"
-              icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content="Wallets Management" />}
-              menuKey="wallets"
+              title={t('wallets_management')}
+              icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content={t('walletsManagement')} />}
+              menuKey="wallets_management"
               activeMenu={activeMenu}
               handleMenuClick={handleMenuClick}
               isCollapsed={isCollapsed}
               activeSubMenu={activeSubMenu}
               handleSubMenuClick={handleSubMenuClick}
             >
-              <SubMenuLink to="/wallet/list" text="List of Wallet / TopUp" isCollapsed={isCollapsed} icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content="List of Wallet" />} />
-              {/* <SubMenuLink to="/wallet/topup" text="Top Up Status" isCollapsed={isCollapsed} icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content="Top Up Status" />} /> */}
-              <SubMenuLink to="/wallet/history" text="List of BM/Ads Wallet" isCollapsed={isCollapsed} icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content="History of Wallet" />} />
+              <SubMenuLink to="/wallet/list" text={t('wallet_list')} isCollapsed={isCollapsed} icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content={t('listWallets')} />} />
+              <SubMenuLink to="/wallet/history" text={t('wallet_history')} isCollapsed={isCollapsed} icon={<FaShekelSign data-tooltip-id="tooltip" data-tooltip-content={t('walletHistory')} />} />
             </MenuItem>
             <MenuItem
-              title="Shared Management"
-              icon={<FaShareAlt data-tooltip-id="tooltip" data-tooltip-content="Shared Management" />}
+              title={t('shared_management')}
+              icon={<FaShareAlt data-tooltip-id="tooltip" data-tooltip-content={t('sharedManagement')} />}
               menuKey="shared"
               activeMenu={activeMenu}
               handleMenuClick={handleMenuClick}
@@ -121,11 +122,11 @@ const Sidebar = ({ isCollapsed }) => {
               activeSubMenu={activeSubMenu}
               handleSubMenuClick={handleSubMenuClick}
             >
-              <SubMenuLink to="/shared/list" text="List of Shared BM/Ads" isCollapsed={isCollapsed} icon={<FaShareAlt data-tooltip-id="tooltip" data-tooltip-content="List of Shared BM/Ads" />} />
+              <SubMenuLink to="/shared/list" text={t('shared_list')} isCollapsed={isCollapsed} icon={<FaShareAlt data-tooltip-id="tooltip" data-tooltip-content={t('listSharedBM')} />} />
             </MenuItem>
             <MenuItem
-              title="Master Setting"
-              icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content="Master Setting" />}
+              title={t('master_setting')}
+              icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content={t('masterSetting')} />}
               menuKey="master"
               activeMenu={activeMenu}
               handleMenuClick={handleMenuClick}
@@ -133,13 +134,13 @@ const Sidebar = ({ isCollapsed }) => {
               activeSubMenu={activeSubMenu}
               handleSubMenuClick={handleSubMenuClick}
             >
-              <SubMenuLink to="/master/network" text="Network/Token Setting" isCollapsed={isCollapsed} icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content="Network/Token Setting" />} />
-              <SubMenuLink to="/master/deposit" text="Deposit Address" isCollapsed={isCollapsed} icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content="Deposit/Crypto" />} />
+              <SubMenuLink to="/master/network" text={t('network')} isCollapsed={isCollapsed} icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content={t('networkTokenSetting')} />} />
+              <SubMenuLink to="/master/deposit" text={t('deposit')} isCollapsed={isCollapsed} icon={<FaCogs data-tooltip-id="tooltip" data-tooltip-content={t('depositAddress')} />} />
             </MenuItem>
             <li className="flex flex-col transition-transform duration-300 transform hover:scale-105">
               <Link to="/setting" className={`flex items-center p-2 rounded-md ${activeMenu === 'setting' ? 'bg-hcolor' : 'hover:bg-hcolor'} w-full text-left`} onClick={() => handleMenuClick('setting')}>
-                <FaCog data-tooltip-id="tooltip" data-tooltip-content="Setting" />
-                {!isCollapsed && <span className="ml-4">Setting</span>}
+                <FaCog data-tooltip-id="tooltip" data-tooltip-content={t('setting')} />
+                {!isCollapsed && <span className="ml-4">{t('setting')}</span>}
               </Link>
             </li>
           </ul>

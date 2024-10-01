@@ -1,9 +1,9 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE_URL, fetchAdminToken, fetchToken } from '../utils/auth';
 import { toast, ToastContainer } from 'react-toastify'; // Import Toastify components
 import 'react-toastify/dist/ReactToastify.css'; // Import Toastify CSS
-import axios from 'axios';
+import { API_BASE_URL, fetchToken } from '../utils/auth';
 
 const AdminLogin = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState('');

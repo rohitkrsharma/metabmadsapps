@@ -44,7 +44,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
       });
 
       // Fetch deposit data
-      const depositsResponse = await fetch(`${API_BASE_URL}/CryptoAddresses`, {
+      const depositsResponse = await fetch(`${API_BASE_URL}/CryptoAddresses/GetActiveCryptoAddresses`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -131,7 +131,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto">
       {loading && (
         <div className="fixed top-0 right-0 m-4 p-4 bg-white border border-gray-300 rounded shadow-lg">
           <p>Loading...</p>
@@ -147,14 +147,10 @@ const AddForm = ({ onBack, onAddSuccess }) => {
           </button>
         </div>
         <div>
-          <button className='flex items-center bg-yellow-400 rounded-md px-4 py-2 text-white hover:bg-yellow-500'>Pending</button>
+          {/* <button className='flex items-center bg-yellow-400 rounded-md px-4 py-2 text-white hover:bg-yellow-500'>Pending</button> */}
         </div>
       </div>
       <div className="bg-white border border-customPurple rounded-md shadow-custom p-4">
-        <div className="mb-4 flex items-center gap-2">
-          <h3 className="text-xl font-bold" id="invoiceNumber">Invoice number:</h3>
-          <h3 className="text-xl font-bold">{invoice.invoiceNumber}</h3>
-        </div>
         <div className="flex mb-4">
           <label className='w-44'>Invoice Date:</label>
           <div className="form-control ">
@@ -191,7 +187,7 @@ const AddForm = ({ onBack, onAddSuccess }) => {
         <div className="flex mb-4">
           <label className='w-52'>Charge Amount:</label>
           <input
-            type="text"
+            type="number"
             name="chargeAmount"
             className="form-control w-full p-2 border border-gray-300 rounded"
             value={formData.chargeAmount}

@@ -149,12 +149,24 @@ const ListShared = ({ onAdd, view, onToggleView }) => {
           {/* Breadcrumbs if needed */}
         </div>
         <div>
-          <SearchBar
+          {/* <SearchBar
             onAdd={onAdd}
             showAddAndView={true}
             view={view}
             onToggleView={onToggleView}
             onSearchTermChange={handleSearchTermChange}
+            placeholder={'Search by order No'}
+          /> */}
+          <SearchBar
+            onSearchTermChange={handleSearchTermChange}
+            onAdd={onAdd}
+            onToggleView={onToggleView}
+            currentView={view}
+            showAddAndView={true}
+            searchPlaceholder="Search by order No"
+            filterOptions={['Customer', 'Reseller']}
+            groupByOptions={['Category', 'Price', 'Brand']}
+            favoritesOptions={['Favorite', 'Favorite']}
           />
         </div>
       </div>

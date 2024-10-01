@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+/* eslint-disable no-undef */
+import React, { useState, Suspense } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { useTranslation } from 'react-i18next'; // Import useTranslation from react-i18next
 import AddBM from './components/BM/AddBm';
 import AdsApproval from './components/BM/AdsApproval';
 import CustomerView from './components/CRM/Customer_view';
@@ -29,72 +31,83 @@ const App = () => {
   const [view, setView] = useState('grid');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  const { t } = useTranslation(); // Use the translation hook
+
   const toggleCollapsed = () => {
     setIsCollapsed(!isCollapsed);
   };
-
-  // const breadcrumbs = ['Master Setting', 'DepositCrypto'];
-  // const listBreadcrumbs = ['Wallet', 'ListWallet'];
-  // const adsapproval = ['BM/ADS Management', 'AdsApproval'];
 
   const onToggleView = (newView) => {
     setView(newView);
   };
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/landing" element={<LandingPage />} />
-        <Route path="/login" element={<AdminLogin setIsAuthenticated={setIsAuthenticated} />} />
-        <Route path="/" element={<Navigate to="/landing" />} />
-        <Route path="/*" element={
-          isAuthenticated ? (
-            <div className="flex h-screen overflow-hidden bg-gray-100 font-Palatino">
-              <Sidebar isCollapsed={isCollapsed} toggleCollapsed={toggleCollapsed} />
-              <div className="flex flex-col flex-grow">
-                <Navbar isCollapsed={isCollapsed} toggleCollapsed={toggleCollapsed} />
-                <div className="flex-grow overflow-y-auto p-4">
-                  <Routes>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/crm/customer" element={
-                      view === 'grid' ? (
-                        <UserGrid onToggleView={onToggleView} />
-                      ) : (
-                        <UserListView onToggleView={onToggleView} />
-                      )
-                    } />
-                    <Route path="/bm/approval" element={
-                      showAddBM ? (
-                        <AddBM onBack={() => setShowAddBM(false)} showBackButton={true} />
-                      ) : (
-                        <AdsApproval view={view} onToggleView={onToggleView} onAdd={() => setShowAddBM(true)} />
-                      )
-                    } />
-                    <Route path="/bm/add" element={<AddBM />} />
-                    <Route path="/wallet/list" element={
-                      showAddForm ? (
-                        <AddForm onBack={() => setShowAddForm(false)} />
-                      ) : (
-                        <ListWallet view={view} onToggleView={onToggleView} onAdd={() => setShowAddForm(true)} />
-                      )
-                    } />
-                    {/* <Route path="/wallet/topup" element={<TopUpStatus view={view} onToggleView={onToggleView} breadcrumbs={topupBreadcrumbs} />} /> */}
-                    <Route path="/wallet/history" element={<WalletHistory view={view} onToggleView={onToggleView} />} />
-                    <Route path="/shared/list" element={<ListShared />} />
-                    <Route path="/master/network" element={showNetwork ? (<NetworkAdd onBack={() => setShowNetwork(false)} />) : (<NetworkTokenSetting onAdd={() => setShowNetwork(true)} view={view} onToggleView={onToggleView} />)} />
-                    <Route path="/master/deposit" element={showDeposite ? (<DepositeAdd onBack={() => { setShowDeposite(false) }} />) : (<DepositCrypto onAdd={() => setShowDeposite(true)} view={view} onToggleView={onToggleView} />)} />
-                    <Route path="/setting" element={<Setting />} />
-                    <Route path="/customer-view/:userId" element={<CustomerView />} />
-                  </Routes>
+    <Suspense fallback={<div>{t('loading')}</div>}>
+      <Router>
+        <Routes>
+          <Route path="/landing" element={<LandingPage />} />
+          <Route path="/login" element={<AdminLogin setIsAuthenticated={setIsAuthenticated} />} />
+          <Route path="/" element={<Navigate to="/landing" />} />
+          <Route path="/*" element={
+            isAuthenticated ? (
+              <div className="flex h-screen overflow-hidden bg-gray-100 font-Palatino">
+                <Sidebar isCollapsed={isCollapsed} toggleCollapsed={toggleCollapsed} />
+                <div className="flex flex-col flex-grow">
+                  <Navbar isCollapsed={isCollapsed} toggleCollapsed={toggleCollapsed} />
+                  <div className="flex-grow overflow-y-auto p-4">
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/crm/customer" element={
+                        view === 'grid' ? (
+                          <UserGrid onToggleView={onToggleView} />
+                        ) : (
+                          <UserListView onToggleView={onToggleView} />
+                        )
+                      } />
+                      <Route path="/bm/approval" element={
+                        showAddBM ? (
+                          <AddBM onBack={() => setShowAddBM(false)} showBackButton={true} />
+                        ) : (
+                          <AdsApproval view={view} onToggleView={onToggleView} onAdd={() => setShowAddBM(true)} />
+                        )
+                      } />
+                      <Route path="/bm/add" element={<AddBM />} />
+                      <Route path="/wallet/list" element={
+                        showAddForm ? (
+                          <AddForm onBack={() => setShowAddForm(false)} />
+                        ) : (
+                          <ListWallet view={view} onToggleView={onToggleView} onAdd={() => setShowAddForm(true)} />
+                        )
+                      } />
+                      <Route path="/wallet/history" element={<WalletHistory view={view} onToggleView={onToggleView} />} />
+                      <Route path="/shared/list" element={<ListShared />} />
+                      <Route path="/master/network" element={
+                        showNetwork ? (
+                          <NetworkAdd onBack={() => setShowNetwork(false)} />
+                        ) : (
+                          <NetworkTokenSetting onAdd={() => setShowNetwork(true)} view={view} onToggleView={onToggleView} />
+                        )
+                      } />
+                      <Route path="/master/deposit" element={
+                        showDeposite ? (
+                          <DepositeAdd onBack={() => { setShowDeposite(false) }} />
+                        ) : (
+                          <DepositCrypto onAdd={() => setShowDeposite(true)} view={view} onToggleView={onToggleView} />
+                        )
+                      } />
+                      <Route path="/setting" element={<Setting />} />
+                      <Route path="/customer-view/:userId" element={<CustomerView />} />
+                    </Routes>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <Navigate to="/landing" />
-          )
-        } />
-      </Routes>
-    </Router>
+            ) : (
+              <Navigate to="/landing" />
+            )
+          } />
+        </Routes>
+      </Router>
+    </Suspense>
   );
 };
 

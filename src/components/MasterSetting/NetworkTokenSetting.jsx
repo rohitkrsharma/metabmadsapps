@@ -7,7 +7,7 @@ import NetworkDetailView from './NetworkTokenFormView';
 
 const TableComponent = ({ view, onToggleView }) => {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]); // Filtered data state
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedRow, setSelectedRow] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -26,8 +26,13 @@ const TableComponent = ({ view, onToggleView }) => {
     try {
       const result = await getCryptoNetworks();
       if (Array.isArray(result.data)) {
-        setData(result.data);
-        setFilteredData(result.data);
+        const normalizedData = result.data.map(item => ({
+          ...item,
+          status: item.status === true || item.status === 'true', // Ensure it's a boolean
+        }));
+        const reversedData = normalizedData.reverse();
+        setData(reversedData);
+        setFilteredData(reversedData);
       } else {
         setData([]);
         setFilteredData([]);
@@ -77,6 +82,7 @@ const TableComponent = ({ view, onToggleView }) => {
   };
 
   const handleSave = (newData) => {
+    console.log('New Data:', newData);
     setData((prevData) => [...prevData, newData]);
     setIsAdding(false);
   };
@@ -85,8 +91,8 @@ const TableComponent = ({ view, onToggleView }) => {
     setEditingRowId(row.id);
     setEditFormData({
       ...row,
-      status: row.status.toString(), // Convert status to string for the select input
-      cryptoNetworkImage: row.cryptoNetworkImage // Initialize the image field to avoid undefined issues
+      status: row.status.toString(),
+      cryptoNetworkImage: row.cryptoNetworkImage
     });
     setEditImageFile(null);
   };
@@ -163,6 +169,24 @@ const TableComponent = ({ view, onToggleView }) => {
     return <NetworkAdd onBack={handleBack} onSave={handleSave} />;
   }
 
+  const handleFilterChange = (selectedFilter) => {
+    // Filter based on the selected filter ('Active', 'Inactive', or 'All')
+    if (selectedFilter === 'Active') {
+      const activeData = data.filter((item) => item.status === true || item.status === 'true');
+      setFilteredData(activeData);
+    } else if (selectedFilter === 'Inactive') {
+      const inactiveData = data.filter((item) => item.status === false || item.status === 'false');
+      setFilteredData(inactiveData);
+    } else {
+      setFilteredData(data); // If 'All' is selected or no filter is applied
+    }
+
+    setCurrentPage(1); // Reset to the first page after filtering
+  };
+
+
+
+
   return (
     <>
       <div className='flex justify-between mb-4'>
@@ -170,9 +194,16 @@ const TableComponent = ({ view, onToggleView }) => {
         </div>
         <div>
           <SearchBar
-            onToggleView={onToggleView}
-            currentView={view} onAdd={() => setIsAdding(true)}
             onSearchTermChange={handleSearchTermChange}
+            onAdd={() => setIsAdding(true)}
+            onToggleView={onToggleView}
+            currentView={view}
+            showAddAndView={true}
+            searchPlaceholder="Search by name or contact number"
+            filterOptions={['Active', 'Inactive']}
+            groupByOptions={['Category', 'Price', 'Brand']}
+            favoritesOptions={['Favorite', 'Favorite']}
+            onFilterChange={handleFilterChange}
           />
         </div>
       </div>

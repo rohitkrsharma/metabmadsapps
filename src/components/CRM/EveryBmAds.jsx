@@ -99,7 +99,7 @@ const EveryBmAds = ({ userId, isEditing }) => {
               <label>{bmAdsData.baseFee}</label>
             )}
           </div>
-          <div className='flex gap-2 items-center'>
+          <div className='flex gap-2 items-center text-red-600 font-semibold'>
             <label className='w-60'>Additional A/C Fee :</label>
             {isEditing ? (
               <input
@@ -144,7 +144,7 @@ const EveryBmAds = ({ userId, isEditing }) => {
                 <label>{bmAdsData.commission}</label>
               )}
             </div>
-            <div className='flex gap-2 items-center'>
+            <div className='flex gap-2 items-center text-red-600 font-semibold'>
               <label className='w-60'>A/C Free/Free coupon :</label>
               {isEditing ? (
                 <input

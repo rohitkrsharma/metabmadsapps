@@ -4,7 +4,7 @@ import SearchBar from '../SearchBar';
 import { fetchToken, API_BASE_URL } from '../utils/auth';
 import DepositeFormView from './DepositeFormView';
 
-const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
+const DepositCrypto = ({ view, onToggleView, onAdd }) => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [filteredData, setFilteredData] = useState([]);
   const [editRowId, setEditRowId] = useState(null);
@@ -37,8 +37,9 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
 
       const result = await response.json();
       if (Array.isArray(result.data)) {
-        setData(result.data);
-        setFilteredData(result.data); // Set both data and filteredData
+        const reversedData = result.data.reverse();
+        setData(reversedData);
+        setFilteredData(reversedData);
       } else {
         console.error('Expected result.data to be an array but got:', result.data);
         setData([]);
@@ -227,10 +228,22 @@ const DepositCrypto = ({ breadcrumbs, view, onToggleView, onAdd }) => {
 
         </div>
         <div>
-          <SearchBar
+          {/* <SearchBar
             onToggleView={onToggleView}
             currentView={view} onAdd={onAdd}
             onSearchTermChange={handleSearchTermChange}
+            placeholder={'Search by Address or Network'}
+          /> */}
+          <SearchBar
+            onSearchTermChange={handleSearchTermChange}
+            onAdd={onAdd}
+            onToggleView={onToggleView}
+            currentView={view}
+            showAddAndView={true}
+            searchPlaceholder="Search by Address or Network"
+            filterOptions={['Customer', 'Reseller']}
+            groupByOptions={['Category', 'Price', 'Brand']}
+            favoritesOptions={['Favorite', 'Favorite']}
           />
         </div>
       </div>

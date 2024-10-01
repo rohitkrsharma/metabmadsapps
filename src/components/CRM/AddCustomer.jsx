@@ -7,7 +7,7 @@ import { API_BASE_URL, fetchToken } from '../utils/auth';
 import AddCustomerEveryBM from './AddCustomerEveryBM';
 import OrderHistoryTable from './OrderHistoryTable';
 
-const AddCustomer = ({ onBack }) => {
+const AddCustomer = ({ onBack, onCustomerAdded }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isCustomer, setIsCustomer] = useState(false);
   const [orderHistoryData, setOrderHistoryData] = useState([]);
@@ -22,6 +22,7 @@ const AddCustomer = ({ onBack }) => {
     additionalAccountFees: '',
     numberOfPages: '',
     commission: '',
+    additionalPageFees: '',
     numberOfFreeAccountsOrCoupons: '',
     contactNumber: '',
     userName: 'Rohit',
@@ -102,14 +103,9 @@ const AddCustomer = ({ onBack }) => {
         }
       );
       console.log('Data saved successfully', response.data);
-
+      onCustomerAdded();
       // If successful, clear the error state
       setErrors({});
-      toast.success('Data saved successfully!', {
-        position: 'top-right',
-        autoClose: 3000,
-      });
-
     } catch (error) {
       // Check for validation errors or generic errors
       if (error.response && error.response.data && error.response.data.errors) {
